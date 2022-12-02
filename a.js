@@ -1,7 +1,6 @@
-import React, { useState, useEffect, useRef } from 'react';
-import styled from 'styled-components';
-import { io } from 'socket.io-client';
-
+import React, { useState, useEffect, useRef } from "react";
+import styled from "styled-components";
+import io from "socket.io-client";
 
 const Page = styled.div`
   display: flex;
@@ -95,38 +94,35 @@ const PartnerMessage = styled.div`
 const App = () => {
   const [yourID, setYourID] = useState();
   const [messages, setMessages] = useState([]);
-  const [message, setMessage] = useState('');
+  const [message, setMessage] = useState("");
 
   const socketRef = useRef();
 
   useEffect(() => {
-    socketRef.current = io('http://localhost:8800/');
+    socketRef.current = io.connect('/');
 
-    socketRef.current.on('your id', id => {
+    socketRef.current.on("your id", id => {
       setYourID(id);
-    });
+    })
 
-    socketRef.current.on('message', msg => {
-      console.log('here');
-      receivedMessage(msg);
-    });
+    socketRef.current.on("message", (message) => {
+      console.log("here");
+      receivedMessage(message);
+    })
   }, []);
 
   function receivedMessage(message) {
-    console.log(message)
     setMessages(oldMsgs => [...oldMsgs, message]);
   }
 
   function sendMessage(e) {
-    // console.log(message)
-    // console.log(messages);
     e.preventDefault();
     const messageObject = {
       body: message,
-      id: yourID
+      id: yourID,
     };
-    setMessage('');
-    socketRef.current.emit('send message', messageObject);
+    setMessage("");
+    socketRef.current.emit("send message", messageObject);
   }
 
   function handleChange(e) {
@@ -140,23 +136,23 @@ const App = () => {
           if (message.id === yourID) {
             return (
               <MyRow key={index}>
-                <MyMessage>{message.body}</MyMessage>
+                <MyMessage>
+                  {message.body}
+                </MyMessage>
               </MyRow>
-            );
+            )
           }
           return (
             <PartnerRow key={index}>
-              <PartnerMessage>{message.body}</PartnerMessage>
+              <PartnerMessage>
+                {message.body}
+              </PartnerMessage>
             </PartnerRow>
-          );
+          )
         })}
       </Container>
       <Form onSubmit={sendMessage}>
-        <TextArea
-          value={message}
-          onChange={handleChange}
-          placeholder='Say something...'
-        />
+        <TextArea value={message} onChange={handleChange} placeholder="Say something..." />
         <Button>Send</Button>
       </Form>
     </Page>
