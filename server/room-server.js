@@ -33,5 +33,41 @@ io.on('connection', socket => {
     // get back the messages of the room
     cb(messages[roomName])
   })
+
+  socket.on('send message', ({ content, toString, sender, chatName, isChannel }) => {
+    if (isChannel) {
+      const payload = {
+        content,
+        chatName,
+        sender
+      }
+      socket.to(to).emit("new message", payload)
+    } else {
+      const payload = {
+        content,
+        chatName: sender,
+        sender
+      }
+      socket.to(to).emit('new message', payload)
+    }
+    if (messages[chatName]) {
+      messages[chatName].push({
+        sender,
+        content
+      })
+    } else {
+      messages[chatName] = []
+      messages[chatName].push({
+        sender,
+        content
+      })
+    }
+  })
+
+  socket.on('disconnect', () => {
+    users = users.filter(u => u.id !== socket.id)
+    io.emit('new user', users)
+  })
 })
+
 server.listen(8900, ()=> console.log('Server is listening on port 8900'))
