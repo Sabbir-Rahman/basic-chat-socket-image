@@ -18,7 +18,7 @@ function App() {
   const [connectedRooms, setConnectedRooms] = useState(['general'])
   const [allUsers, setAllUsers] =useState([])
   const [messages, setMessages] = useState(initialMessageState)
-  const [message, setMessage] = useRef()
+  const [message, setMessage] = useState("")
   const socketRef = useRef()
 
   let body
@@ -27,8 +27,12 @@ function App() {
     setMessage(e.target.value)
   }
 
-  function handleChange () {
+  useEffect(() => {
+    setMessage("")
+  },[messages])
 
+  function handleChange (e) {
+    setUsername(e.target.value)
   }
 
   function sendMessage () {
@@ -77,7 +81,28 @@ function App() {
   }
 
   function connect () {
+    setConnected(true)
+    socketRef.current.emit('join server', username)
+    socketRef.current.emit('join room', 'general', (messages)=> roomJoinCallback(messages,'general'))
+    socketRef.current.on('new user', allUsers => {
+      setAllUsers(allUsers)
+    })
 
+    socketRef.current.on('new message', ({ content, sender, chatName}) => {
+      // sync messages with new message
+      setMessage(messages => {
+        // add new message to the targetted room or fast create if room not exist
+        const newMessages = immer(messages, draft => {
+          if (draft[chatName]){
+            draft[chatName].push({ content, sender })
+          } else {
+            draft[chatName] = [{ content, sender }]
+          }
+        })
+
+        return newMessages
+      })
+    })
   }
 
   if (connected) {
