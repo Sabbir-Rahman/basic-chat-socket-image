@@ -47,13 +47,13 @@ function App() {
     }
     console.log(payload)
     socketRef.current.emit('send message', payload)
-    const newMessage = immer(messages, draft => {
+    const newMessages = immer(messages, draft => {
       draft[currentChat.chatName].push({
         sender: username,
         content: message
       })
     })
-    setMessages(newMessage)
+    setMessages(newMessages)
   }
 
   function roomJoinCallback(incommingMessages,room) {
