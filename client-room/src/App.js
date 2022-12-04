@@ -3,6 +3,7 @@ import immer from 'immer'
 import Chat from './components/Chat';
 import Form from './components/UsernameForm';
 import './App.css'
+import { io } from 'socket.io-client';
 
 const initialMessageState = {
   general: [],
@@ -28,6 +29,7 @@ function App() {
   }
 
   useEffect(() => {
+    console.log('hit')
     setMessage("")
   },[messages])
 
@@ -43,6 +45,7 @@ function App() {
       chatName: currentChat.chatName,
       isChannel: currentChat.isChannel
     }
+    console.log(payload)
     socketRef.current.emit('send message', payload)
     const newMessage = immer(messages, draft => {
       draft[currentChat.chatName].push({
@@ -71,8 +74,9 @@ function App() {
   }
 
   function toggleChat (currentChat) {
+    
     if(!messages[currentChat.chatName]) {
-      const newMessages = immer(message, draft => {
+      const newMessages = immer(messages, draft => {
         draft[currentChat.chatName] = []
       })
       setMessages(newMessages)
@@ -82,6 +86,7 @@ function App() {
 
   function connect () {
     setConnected(true)
+    socketRef.current = io.connect('http://localhost:8900/')
     socketRef.current.emit('join server', username)
     socketRef.current.emit('join room', 'general', (messages)=> roomJoinCallback(messages,'general'))
     socketRef.current.on('new user', allUsers => {
@@ -89,8 +94,9 @@ function App() {
     })
 
     socketRef.current.on('new message', ({ content, sender, chatName}) => {
+      
       // sync messages with new message
-      setMessage(messages => {
+      setMessages(messages => {
         // add new message to the targetted room or fast create if room not exist
         const newMessages = immer(messages, draft => {
           if (draft[chatName]){

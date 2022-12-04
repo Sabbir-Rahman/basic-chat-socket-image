@@ -34,7 +34,7 @@ io.on('connection', socket => {
     cb(messages[roomName])
   })
 
-  socket.on('send message', ({ content, toString, sender, chatName, isChannel }) => {
+  socket.on('send message', ({ content, to, sender, chatName, isChannel }) => {
     if (isChannel) {
       const payload = {
         content,
